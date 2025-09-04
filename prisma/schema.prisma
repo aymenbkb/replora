@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String          @id @default(uuid())
+  // Clerk fields
+  clerkId          String          @unique
+  email            String?
+  firstName        String?
+  lastName         String?
+  profileImage     String?
+  
+  // Authentication
+  emailVerified    DateTime?
+  lastSignInAt     DateTime?
+  
+  // Role-based access
+  role             String          @default("USER") // e.g., "ADMIN", "USER"
+  
+  // Relations
+  pages            Page[]
+  stripeCustomer   StripeCustomer?
+  subscription     Subscription?
+  
+  // Timestamps
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  deletedAt        DateTime?
+  
+  // Indexes
+  @@index([email])
+  @@index([clerkId])
+  @@index([role])
+  @@map("users")
+}
+
+model Page {
+  id             String       @id @default(uuid())
+  userId         String
+  platform       String       // e.g. "facebook", "instagram", "telegram"
+  pageName       String
+  pageExternalId String       @unique              // The ID from Meta/Telegram
+  accessToken    String                             
+  refreshToken   String?                           // Some platforms return this
+  tokenExpiresAt DateTime?                         // Track expiry for refresh
+  metadata       Json?                             // Store extra data (scopes, bot name, etc.)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  // Relations
+  automations    Automation[]
+  messageLogs    MessageLog[]
+  user           User         @relation(fields: [userId], references: [id])
+}
+
+model Automation {
+  id        String    @id @default(uuid())
+  pageId    String
+  name      String
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  actions   Action[]
+  page      Page      @relation(fields: [pageId], references: [id])
+  triggers  Trigger[]
+}
+
+model Trigger {
+  id           String     @id @default(uuid())
+  automationId String
+  keyword      String
+  matchType    String
+  createdAt    DateTime   @default(now())
+  automation   Automation @relation(fields: [automationId], references: [id])
+}
+
+model Action {
+  id           String     @id @default(uuid())
+  automationId String
+  type         String
+  content      String
+  createdAt    DateTime   @default(now())
+  automation   Automation @relation(fields: [automationId], references: [id])
+}
+
+model MessageLog {
+  id               String   @id @default(uuid())
+  pageId           String
+  direction        String   // "inbound" | "outbound"
+  senderId         String
+  messageText      String
+  matchedTriggerId String?
+  automationId     String?
+  createdAt        DateTime @default(now())
+  page             Page     @relation(fields: [pageId], references: [id])
+}
+
+model StripeCustomer {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  stripeCustomerId String
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  stripeSubscriptionId String
+  status               String   // active, canceled, trialing
+  plan                 String   // free, pro, business
+  currentPeriodEnd     DateTime
+  createdAt            DateTime @default(now())
+  user                 User     @relation(fields: [userId], references: [id])
+}
