@@ -31,7 +31,6 @@ export default function BlogPage({ params }: { params: { slug: string } }) {
   );
 }
 
-// ✅ Pre-generate static params so TypeScript infers correctly
 export async function generateStaticParams() {
   return (blogs as Blog[]).map((blog) => ({
     slug: blog.slug,
