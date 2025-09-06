@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import { use } from "react";
 import blogs from "@/utils/constants/blogs.json";
 
 interface Blog {
@@ -7,22 +7,10 @@ interface Blog {
   description: string;
 }
 
-interface PageProps {
-  params: { slug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+export default function BlogPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params); // unwrap Promise
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const blog = (blogs as Blog[]).find((blog) => blog.slug === params.slug);
-  
-  return {
-    title: blog?.title || 'Blog Not Found',
-    description: blog?.description || '',
-  };
-}
-
-export default function BlogPage({ params }: PageProps) {
-  const blog = (blogs as Blog[]).find((blog) => blog.slug === params.slug);
+  const blog = (blogs as Blog[]).find((blog) => blog.slug === slug);
 
   if (!blog) {
     return (
