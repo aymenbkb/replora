@@ -5,4 +5,3 @@ export async function POST(req: Request) {
   // Do something with body...
   return NextResponse.json({ ok: true, data: body });
 }
-
