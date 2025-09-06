@@ -1,12 +1,6 @@
 import blogs from "@/utils/constants/blogs.json";
 
-interface PageProps {
-  params: {
-    slug: string;
-  };
-}
-
-export default function BlogPage({ params }: PageProps) {
+export default function BlogPage({ params }: { params: { slug: string } }) {
   const blog = blogs.find((blog) => blog.slug === params.slug);
 
   if (!blog) {
