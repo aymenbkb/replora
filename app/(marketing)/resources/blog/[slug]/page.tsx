@@ -1,7 +1,13 @@
 import blogs from "@/utils/constants/blogs.json";
 
+interface Blog {
+  slug: string;
+  title: string;
+  description: string;
+}
+
 export default function BlogPage({ params }: { params: { slug: string } }) {
-  const blog = blogs.find((blog) => blog.slug === params.slug);
+  const blog = (blogs as Blog[]).find((blog) => blog.slug === params.slug);
 
   if (!blog) {
     return (
@@ -23,4 +29,11 @@ export default function BlogPage({ params }: { params: { slug: string } }) {
       </div>
     </div>
   );
+}
+
+// ✅ Pre-generate static params so TypeScript infers correctly
+export async function generateStaticParams() {
+  return (blogs as Blog[]).map((blog) => ({
+    slug: blog.slug,
+  }));
 }
