@@ -31,6 +31,7 @@ export default function BlogPage({ params }: { params: { slug: string } }) {
   );
 }
 
+// ✅ Tell Next which slugs exist
 export async function generateStaticParams() {
   return (blogs as Blog[]).map((blog) => ({
     slug: blog.slug,
