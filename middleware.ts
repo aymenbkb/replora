@@ -1,28 +1,27 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
-export default clerkMiddleware(async (auth, req) => {
-  // get auth session
+// This example protects all routes including api/trpc routes
+// Please edit this to allow other routes to be public as needed.
+// See https://clerk.com/docs/references/nextjs/clerk-middleware for more information about configuring your Middleware
+export default clerkMiddleware(async (auth) => {
+  // Add your custom middleware here
   const session = await auth();
+  const request = new Request(auth.req);
+  const url = new URL(request.url);
+  const pathname = url.pathname;
   const { userId } = session;
 
-  const url = req.nextUrl;
-  const pathname = url.pathname;
-
   // Protect /dashboard and sub-routes
-  if (pathname.startsWith("/dashboard") && !userId) {
-    return NextResponse.redirect(new URL("/auth/sign-in", req.url));
+  if (pathname.startsWith('/dashboard') && !userId) {
+    return NextResponse.redirect(new URL('/auth/sign-in', url));
   }
 
   // Redirect authenticated users away from auth routes to approval flow first
-  if (
-    userId &&
-    (pathname.startsWith("/auth/sign-in") ||
-      pathname.startsWith("/auth/sign-up"))
-  ) {
-    return NextResponse.redirect(new URL("/auth/approval", req.url));
+  if (userId && (pathname.startsWith('/auth/sign-in') || pathname.startsWith('/auth/sign-up'))) {
+    return NextResponse.redirect(new URL('/auth/approval', url));
   }
-
+  
   return NextResponse.next();
 });
 
