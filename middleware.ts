@@ -2,7 +2,8 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
+  const authResult = await auth();
+  const { userId } = authResult;
   const { pathname } = req.nextUrl;
 
   // ✅ Allow OAuth callback routes without auth
