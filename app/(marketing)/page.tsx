@@ -15,9 +15,11 @@ import { ArrowRightIcon, CreditCardIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+
 const HomePage = async () => {
-  const session = await auth();
-  const userId = session?.userId;
+    const session = auth();
+    const userId = (session as any).userId;
+
 
   return (
     <div className="overflow-x-hidden scrollbar-hide size-full">
