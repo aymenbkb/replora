@@ -1,33 +1,37 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-export default clerkMiddleware(async (auth, req) => {
-  const authResult = await auth();
-  const { userId } = authResult;
-  const { pathname } = req.nextUrl;
+// Define public routes
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/api/oauth/meta(.*)',
+  '/api/oauth/telegram(.*)',
+  '/marketing(.*)',
+  '/privacy',
+  '/terms',
+  '/auth/sign-in(.*)',
+  '/auth/sign-up(.*)'
+]);
 
-  // ✅ Allow OAuth callback routes without auth
-  if (
-    pathname.startsWith("/api/oauth/meta") ||
-    pathname.startsWith("/api/oauth/telegram") ||
-    pathname.startsWith("/marketing") ||
-    pathname === "/privacy" ||
-    pathname === "/terms"
-  ) {
+export default clerkMiddleware(async (auth, request) => {
+  // Allow public routes to pass through
+  if (isPublicRoute(request)) {
     return NextResponse.next();
   }
 
-  // ✅ Protect dashboard
-  if (pathname.startsWith("/dashboard") && !userId) {
-    return NextResponse.redirect(new URL("/auth/sign-in", req.url));
+  // For protected routes, check auth manually
+  const { userId } = await auth();
+  
+  if (!userId) {
+    return NextResponse.redirect(new URL('/auth/sign-in', request.url));
   }
 
   return NextResponse.next();
 });
 
 export const config = {
-  runtime: 'nodejs',
   matcher: [
-    "/((?!_next/|_static/|_vercel|[\\w-]+\\..*).*)",
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
   ],
 };
