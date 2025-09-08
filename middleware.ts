@@ -4,27 +4,28 @@ import { NextResponse } from 'next/server';
 // This example protects all routes including api/trpc routes
 // Please edit this to allow other routes to be public as needed.
 // See https://clerk.com/docs/references/nextjs/clerk-middleware for more information about configuring your Middleware
-export default clerkMiddleware(async (auth) => {
-  // Add your custom middleware here
-  const session = await auth();
-  const request = new Request(auth.req);
-  const url = new URL(request.url);
-  const pathname = url.pathname;
-  const { userId } = session;
-
-  // Protect /dashboard and sub-routes
-  if (pathname.startsWith('/dashboard') && !userId) {
-    return NextResponse.redirect(new URL('/auth/sign-in', url));
-  }
-
-  // Redirect authenticated users away from auth routes to approval flow first
-  if (userId && (pathname.startsWith('/auth/sign-in') || pathname.startsWith('/auth/sign-up'))) {
-    return NextResponse.redirect(new URL('/auth/approval', url));
-  }
+export default clerkMiddleware(async (auth, req) => {
+    const session = await auth();
+    const { userId } = session;
   
-  return NextResponse.next();
-});
-
+    const url = req.nextUrl;
+    const pathname = url.pathname;
+  
+    if (pathname.startsWith("/dashboard") && !userId) {
+      return NextResponse.redirect(new URL("/auth/sign-in", req.url));
+    }
+  
+    if (
+      userId &&
+      (pathname.startsWith("/auth/sign-in") ||
+        pathname.startsWith("/auth/sign-up"))
+    ) {
+      return NextResponse.redirect(new URL("/auth/approval", req.url));
+    }
+  
+    return NextResponse.next();
+  });
+  
 export const config = {
   matcher: [
     // Match all paths except for:
