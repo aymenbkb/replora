@@ -1,37 +1,38 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { clerkMiddleware } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-// Define public routes
-const isPublicRoute = createRouteMatcher([
-  '/',
-  '/api/oauth/meta(.*)',
-  '/api/oauth/telegram(.*)',
-  '/marketing(.*)',
-  '/privacy',
-  '/terms',
-  '/auth/sign-in(.*)',
-  '/auth/sign-up(.*)'
-]);
+export default clerkMiddleware((auth, request) => {
+  const { pathname } = request.nextUrl;
 
-export default clerkMiddleware(async (auth, request) => {
-  // Allow public routes to pass through
-  if (isPublicRoute(request)) {
+  // Define public routes
+  const publicRoutes = [
+    '/',
+    '/api/oauth/meta',
+    '/api/oauth/telegram',
+    '/marketing',
+    '/privacy',
+    '/terms',
+    '/auth/sign-in',
+    '/auth/sign-up'
+  ];
+
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || pathname.startsWith(route + '/')
+  );
+
+  // Allow public routes
+  if (isPublicRoute) {
     return NextResponse.next();
   }
 
-  // For protected routes, check auth manually
-  const { userId } = await auth();
-  
-  if (!userId) {
-    return NextResponse.redirect(new URL('/auth/sign-in', request.url));
-  }
-
+  // For protected routes, let Clerk handle it automatically
+  // Clerk will redirect to sign-in if user is not authenticated
   return NextResponse.next();
 });
 
 export const config = {
+    runtime: 'nodejs',
   matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    '/(api|trpc)(.*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
