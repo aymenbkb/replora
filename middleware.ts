@@ -11,6 +11,7 @@ const publicRoutes = [
   '/terms',
   '/auth/sign-in(.*)',
   '/auth/sign-up(.*)',
+  '/auth/auth-callback(.*)',
 ];
 
 const isPublicRoute = createRouteMatcher(publicRoutes);
