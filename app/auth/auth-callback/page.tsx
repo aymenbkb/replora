@@ -9,7 +9,7 @@ const AuthCallbackPage = () => {
             <p className="text-lg font-medium text-center mt-3">
                 Verifying your account...
             </p>
-            <AuthenticateWithRedirectCallback signInFallbackRedirectUrl="/auth/approval" />
+            <AuthenticateWithRedirectCallback />
         </div>
     )
 };

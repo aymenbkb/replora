@@ -1,26 +1,41 @@
-import React from 'react'
+import { use } from "react";
 import blogs from "@/utils/constants/blogs.json";
-interface Props {
-    params: {
-        slug: string
-    }
+
+interface Blog {
+  slug: string;
+  title: string;
+  description: string;
 }
 
-const BlogPage = ({ params }: Props) => {
+export default function BlogPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params); // unwrap Promise
 
-    const blog = blogs.find((blog) => blog.slug === params.slug);
+  const blog = (blogs as Blog[]).find((blog) => blog.slug === slug);
+
+  if (!blog) {
     return (
-        <div className="flex flex-col items-center justify-center max-w-6xl mx-auto px-4 md:px-0 pb-80">
-            <div className="flex flex-col items-center justify-center">
-                <h1 className="text-2xl md:text-4xl lg:text-5xl font-semibold font-heading text-center mt-6 !leading-tight">
-                    {blog?.title}
-                </h1>
-                <p className="text-base md:text-lg mt-6 text-center text-muted-foreground">
-                    {blog?.description}
-                </p>
-            </div>
-        </div>
-    )
-};
+      <div className="flex flex-col items-center justify-center max-w-6xl mx-auto px-4 md:px-0 pb-80">
+        <h1 className="text-2xl font-semibold mt-6">Blog not found</h1>
+      </div>
+    );
+  }
 
-export default BlogPage
+  return (
+    <div className="flex flex-col items-center justify-center max-w-6xl mx-auto px-4 md:px-0 pb-80">
+      <div className="flex flex-col items-center justify-center">
+        <h1 className="text-2xl md:text-4xl lg:text-5xl font-semibold font-heading text-center mt-6 !leading-tight">
+          {blog.title}
+        </h1>
+        <p className="text-base md:text-lg mt-6 text-center text-muted-foreground">
+          {blog.description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export async function generateStaticParams() {
+  return (blogs as Blog[]).map((blog) => ({
+    slug: blog.slug,
+  }));
+}
